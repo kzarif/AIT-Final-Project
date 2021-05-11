@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" href="/css/site.css" type="text/css" media="screen" title="no title" charset="utf-8">
+</head>
+<body>
+	<header class="navBar">
+		
+		<a id="home" href="/">Home</a>
+		{{#if user}}
+			<a id="add" href="/article/add">Add</a> | <span id="user">{{user.username}}</span>
+		{{else}}
+			<nav class="logButtons">
+				<a id="register" href="/register">Register</a>|<a id="login" href="/login">Login</a>
+			</nav>
+		{{/if}}
+		
+	</header>
+	<h1>note.</h1>
+	{{{body}}}
+</body>
+</html>
