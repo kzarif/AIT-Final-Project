@@ -39,33 +39,44 @@ app.use(express.urlencoded({ extended: false }));
 const port = 3000;
 
 app.get('/api/get_task_lists', (req, res) => {
-    TaskList.find({'user': req.user._id}, (err, results) => {
-        res.json({err,results});
-    })
+    User
+        .findOne({'_id': req.user._id})
+        .populate('taskLists')
+        .exec((err, result) => {
+            let taskLists = result.taskLists;
+            // console.log(taskLists)
+            res.json({err, taskLists});
+        })
 })
 
 app.post('/api/create_new_list', (req, res) => {
-    let newList = new TaskList({
-        '_id': mongoose.Types.ObjectId(),
-        'user': req.user._id,
-        'listName': req.body.listName
-    })
+    console.log("adding")
+    User.findOne({'_id': req.user._id}, (err, result) => {
+        
+        let newList = new TaskList({
+            '_id': mongoose.Types.ObjectId(),
+            'user': req.user._id,
+            'listName': req.body.listName
+        })
 
-    TaskList.create(newList, (err, newList) => {
-        if(err){
-            console.log(err);
-        }
-        console.log("works");
+        result.taskLists.push(newList);
+        result.save();
+
+        TaskList.create(newList, (err, newList) => {
+            if(err){
+                console.log(err);
+            }
+            console.log("works");
+        })
+
         res.json({err, newList});
     })
 })
 
 app.post('/api/add_task', (req, res) => {
-    const currUser = User.findOne({'username': req.user.username});
-    currUser
-        .then((result) => {
-            console.log(result._id);
-        })
+    TaskList.find({'user': req.user._id}, (err, results) => {
+        
+    })
 })
 
 app.get('/', (req, res) => {
