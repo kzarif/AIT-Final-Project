@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 require('./db');
 const User = mongoose.model('User');
 const TaskList = mongoose.model('TaskList');
+const Task = mongoose.model('Task');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const passport = require('passport');
@@ -62,7 +63,7 @@ app.post('/api/create_new_list', (req, res) => {
         result.taskLists.push(newList);
         result.save();
 
-        TaskList.create(newList, (err, newList) => {
+        TaskList.create(newList, (err, addedList) => {
             if(err){
                 console.log(err);
             }
@@ -73,9 +74,27 @@ app.post('/api/create_new_list', (req, res) => {
     })
 })
 
-app.post('/api/add_task', (req, res) => {
-    TaskList.find({'user': req.user._id}, (err, results) => {
+app.post('/api/add_new_task', (req, res) => {
+    TaskList.findOne({'_id': req.body.listId}, (err, list) => {
         
+        let newTask = new Task({
+            '_id': mongoose.Types.ObjectId(),
+            'taskList': list._id,
+            'content': req.body.task,
+        })
+        
+        console.log(newTask);
+
+        list.currentTasks.push(newTask);
+        list.save();
+
+        Task.create(newTask, (err, addedTask) => {
+            if(err){
+                console.log("oops");
+            }
+        })
+        
+        res.json({err, newTask});
     })
 })
 
