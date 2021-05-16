@@ -50,7 +50,26 @@ app.get('/api/get_task_lists', (req, res) => {
         })
 })
 
-app.post('/api/create_new_list', (req, res) => {
+app.get('/api/get_tasks', (req, res) => {
+    // console.log(req.query.id)
+    TaskList
+        .findOne({'_id': req.query.id})
+        .populate('currentTasks')
+        .exec((err, result) => {
+            if(err){
+                console.log(err);
+            }
+            // console.log(result);
+            else if(!result){
+                console.log("no tasks");
+                return;
+            }
+            let currentTasks = result.currentTasks;
+            res.json({err, currentTasks});
+        }) 
+})
+
+app.post('/api/add_new_list', (req, res) => {
     console.log("adding")
     User.findOne({'_id': req.user._id}, (err, result) => {
         
@@ -93,7 +112,7 @@ app.post('/api/add_new_task', (req, res) => {
                 console.log("oops");
             }
         })
-        
+
         res.json({err, newTask});
     })
 })
