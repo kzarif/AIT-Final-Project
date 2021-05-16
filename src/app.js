@@ -69,6 +69,25 @@ app.get('/api/get_tasks', (req, res) => {
         }) 
 })
 
+app.get('/api/get_completed_tasks', (req, res) => {
+    // console.log(req.query.id)
+    TaskList
+        .findOne({'_id': req.query.id})
+        .populate('completedTasks')
+        .exec((err, result) => {
+            if(err){
+                console.log(err);
+            }
+            // console.log(result);
+            else if(!result){
+                console.log("no tasks");
+                return;
+            }
+            let completedTasks = result.completedTasks;
+            res.json({err, completedTasks});
+        }) 
+})
+
 app.post('/api/add_new_list', (req, res) => {
     console.log("adding")
     User.findOne({'_id': req.user._id}, (err, result) => {
@@ -114,6 +133,31 @@ app.post('/api/add_new_task', (req, res) => {
         })
 
         res.json({err, newTask});
+    })
+})
+
+app.post('/api/complete_task', (req, res) => {
+    // console.log(req.body);
+    TaskList.findOne({'_id': req.body.taskListId}, (err, result) => {
+        // console.log(result);
+        result.currentTasks = result.currentTasks.filter((task) => {
+            // console.log(task === req.body.taskId);
+            task = task.toString();
+            if(task === req.body.taskId){
+                result.completedTasks.push(task);
+                return false;
+            }
+            // console.log(typeof task, typeof req.body.taskId)
+            // console.log(task === req.body.taskId);
+            // console.log(task !== req.body.taskId);
+            else
+                return task !== req.body.taskId;
+        })
+
+        result.save();
+        // console.log(result);
+        res.json(req.body)
+
     })
 })
 

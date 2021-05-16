@@ -31,6 +31,7 @@ async function addNewList(evt){
         .catch(console.log);
 }
 
+//add a new task to the list
 async function addNewTask(evt){
     let task = document.querySelector('#task-text').value.trim();
     let listId = document.querySelector('#task-list-id').value;
@@ -84,10 +85,11 @@ async function loadContent(){
     
 }
 
+//load tasks and hide them
 async function loadTasks(id){
-    const response = await fetch("/api/get_tasks/" + `?id=${id}`);
-    const jsonData = await response.json();
-    const data = new Promise((resolve, reject) => {
+    let response = await fetch("/api/get_tasks/" + `?id=${id}`);
+    let jsonData = await response.json();
+    let data = new Promise((resolve, reject) => {
         if(jsonData.err){
             reject();
         }
@@ -98,6 +100,23 @@ async function loadTasks(id){
     data
         .then(generateTasks)
         .catch(console.log);
+}
+
+async function loadCompletedTasks(id){
+    let response = await fetch("/api/get_completed_tasks/" + `?id=${id}`);
+    let jsonData = await response.json();
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject();
+        }
+        else{
+            resolve(jsonData.completedTasks);
+        }
+    })
+    data
+        .then(generateCompletedTasks)
+        .catch(console.log);
+
 }
 
 //create a new element for a new list item
@@ -116,11 +135,12 @@ async function addNewListNode(newList){
     modalDisplay.appendChild(taskContainer);
 
     document.getElementById(taskContainer.id).style.display = "none";
-    
+
     await loadTasks(newList._id);
+    await loadCompletedTasks(newList._id);
 }
 
-
+//create a new element for a new task
 async function addNewTaskNode(newTask){
     let inputBar = document.querySelector("#add-task-label");
     // console.log(newTask.taskList);
@@ -128,21 +148,37 @@ async function addNewTaskNode(newTask){
     let task = document.createElement('li');
     let taskText = document.createTextNode(newTask.content);
     task.id = newTask._id;
+    task.className = 'task-item';
     task.appendChild(taskText)
     taskContainer.appendChild(task);
     inputBar.before(taskContainer);
-
+    
 }
 
+async function addCompletedTasks(newCompletedTask){
+    let completedTaskContainer = document.querySelector('#completed');
+    let completedTask = document.createElement('li');
+    let completedTaskText = document.createTextNode(newCompletedTask.content);
+    completedTask.id = newCompletedTask._id;
+    completedTask.className = 'completed-task-item';
+    completedTask.appendChild(completedTaskText)
+    completedTaskContainer.appendChild(completedTask);
+}
+
+//wrapper to create and display all lists referenced by a user
 async function generateLists(lists){
     // let taskList = document.querySelector("#task-list");
     lists.map(addNewListNode);
 }
 
+//wrapper to create all tasks referenced by a taskList
 async function generateTasks(tasks){
     tasks.map(addNewTaskNode);
 }
 
+async function generateCompletedTasks(completedTasks){
+    completedTasks.map(addCompletedTasks);
+}
 
 //open the modal window for adding new tasks
 async function expandList(evt){
@@ -154,6 +190,35 @@ async function expandList(evt){
     toggleModalTask(evt);
     
 }
+
+async function taskComplete(evt){
+    // console.log(evt.target.parentNode)
+    let taskContainer = evt.target.parentNode
+    const config = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'taskId': evt.target.id,
+            'taskListId': taskContainer.id
+        })
+    }
+    let response = await fetch('/api/complete_task', config);
+    let jsonData = await response.json();
+    let data;
+    taskContainer.removeChild(evt.target);
+    updateCompletedTasks(evt);
+    // console.log("completed")
+
+}
+
+async function updateCompletedTasks(evt){
+    let completedTasks = document.querySelector('#completed');
+    evt.target.className = "completed-task-item";
+    completedTasks.appendChild(evt.target);
+}
+
 
 //open/close the modal window
 async function toggleModalTask(evt){
@@ -183,6 +248,9 @@ function main(){
         }
         else if(currEvt.id === "done-adding-task"){
             toggleModalTask(evt);
+        }
+        else if(currEvt.className === "task-item"){
+            taskComplete(evt);
         }
     })
 
