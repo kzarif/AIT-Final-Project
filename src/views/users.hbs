@@ -5,9 +5,9 @@
     <div id="add-task">
         <input type="text" id="list-name" name="list-name" value="">
         <input type="button" class="submit" id="create-new-list" value="Create-a-new-list">
-        <ul id="task-list">
+        <div id="task-list">
 
-        </ul>
+        </div>
 
     </div>
 
@@ -23,16 +23,16 @@
 </div>
 
 <div id="modal-task" class="modal">
-    <div class="modal-content">
-
+    <div id="modal-display" class="modal-content">
+        <h3 id="list-title"></h3>
         <div>
-            <label for="title">Add Task</label>
+            <label id="add-task-label" for="title">Add Task</label>
             <input type="text" id="task-text" name="task-text" value="">
         </div>
 
         <input type="button" class="submit" id="add-task" value="Add Task">
         <input type="button" class="close" id="done-adding-task" value="Done">
-        {{!-- <input type="hidden" id="code-snippet-id" value=""> --}}
+        <input type="hidden" id="task-list-id" value="">
 
     </div>
 </div>
