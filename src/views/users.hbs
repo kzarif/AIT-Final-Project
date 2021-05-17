@@ -1,40 +1,59 @@
 <p>Welcome {{user.username}}</p>
+<div id="content">
+    <div id="UI">
 
-<div id="UI">
+        <div id="add-task-list" class="lists">
 
-    <div id="add-task" class="lists">
-        <input type="text" id="list-name" name="list-name" value="">
-        <input type="button" class="submit" id="create-new-list" value="Create-a-new-list">
-        <div id="task-list">
+            <div class="list-name-input">
+                <input type="text" id="list-name" name="list-name" value="">
+                <input type="button" class="submit" id="create-new-list" value="Create A New List">
+            </div>
+            <div id="task-list">
+
+            </div>
 
         </div>
 
     </div>
 
-    <div id="undo-task" class="lists">
-        <h3 id="completed-task-list">Completed Tasks</h3>
-        <div id="completed">
+
+
+    <div id="modal-task" class="modal">
+        <div id="current-task-display" class="modal-content">
+            <input type="button" class="switch" id="switch-window" value="Switch">
+            <h3 class="list-title"></h3>
+            
+            <div>
+                <label id="add-task-label" for="title">Add Task</label>
+                <input type="text" id="task-text" name="task-text" value="">
+
+                <input type="button" class="submit" id="add-task" value="Add Task">
+            </div>
+
+            {{!-- <input type="hidden" id="task-list-id" value=""> --}}
+            <input type="button" class="close" id="done-adding-task" value="Done">
 
         </div>
-        <input type="button" class="submit" id="undo-task" value="Undo Task">
+
+        <div id="completed-task-display" class="modal-content">
+            <input type="button" class="switch" id="switch-window" value="Switch">
+            <h3 class="list-title"></h3>
+            
+            <input type="button" class="close" id="done-undoing-task" value="Done">
+
+        </div>
 
     </div>
 
-</div>
+    <div id="modal-edit" class="modal">
+            <div id="edit-UI" class="modal-content">
+                <label id="edit-item" for="edit-text"></label>
+                <input type="text" id="edit-text" name="edit-text" value="">
 
-<div id="modal-task" class="modal">
-    <div id="modal-display" class="modal-content">
-        <h3 id="list-title"></h3>
-        <div>
-            <label id="add-task-label" for="title">Add Task</label>
-            <input type="text" id="task-text" name="task-text" value="">
-        </div>
-
-        <input type="button" class="submit" id="add-task" value="Add Task">
-        <input type="button" class="close" id="done-adding-task" value="Done">
-        <input type="hidden" id="task-list-id" value="">
-
+                <input type="button" class="submit" id="confirm-edit" value="Confirm Changes">
+            </div>
     </div>
+    <input type="hidden" id="task-list-id" value="">
 </div>
 
 <script src="../js/users.js"></script>
