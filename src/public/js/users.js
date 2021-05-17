@@ -22,7 +22,7 @@ async function addNewList(evt){
             reject();
         }
         else{
-            resolve(jsonData.newList)
+            resolve(jsonData.addedList)
         }
     })
     document.querySelector('#list-name').value = "";
@@ -65,6 +65,39 @@ async function addNewTask(evt){
         .catch(console.log);
 }
 
+async function taskComplete(evt){
+    // console.log(evt.target.parentNode)
+    let taskContainer = evt.target.parentNode.parentNode
+    const config = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'taskId': evt.target.id,
+            'taskListId': taskContainer.id
+        })
+    }
+    let response = await fetch('/api/complete_task', config);
+    let jsonData = await response.json();
+    // console.log(jsonData)
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject()
+        }
+        else{
+            resolve(jsonData.result)
+        }
+    });
+    // evt.target.classList.toggle('fly-off')
+    evt.target.parentNode.remove();
+    data
+        .then(addCompletedTasks)
+        .catch(console.log)
+    
+    // console.log("completed")
+
+}
 
 //load content on page
 async function loadContent(){
@@ -123,18 +156,44 @@ async function loadCompletedTasks(id){
 async function addNewListNode(newList){
     // console.log(newList);
     let taskList = document.querySelector("#task-list");
-    let name = document.createElement('div');
-    let modalDisplay = document.querySelector("#modal-display");
+    let currentTaskDisplay = document.querySelector("#current-task-display");
+    let completedTaskDisplay = document.querySelector('#completed-task-display');
+    // console.log(completedTaskDisplay)
     let taskContainer = document.createElement('div');
     taskContainer.id = newList._id;
+    taskContainer.className = "container"
+    
+    let row = document.createElement('div');
+    let name = document.createElement('div');
+    name.style.display = 'inline-block';
+    let editListName = document.createElement('div');
+    editListName.style.display = 'inline-block';
+    editListName.id = `${newList._id}-edit`
+    editListName.className = "edit-list-button"
+    let editBtnText = document.createTextNode("Edit");
+    editListName.appendChild(editBtnText);
+    let completedTaskContainer = document.createElement('div');
+    completedTaskContainer.id = `${newList._id}-completed`
+    completedTaskContainer.className = "container"
+    // console.log(completedTaskContainer)
     name.id = `${newList._id}-${newList.listName}`;
     name.className = 'list-item';
     let nameText = document.createTextNode(newList.listName);
     name.appendChild(nameText);
-    taskList.appendChild(name);
-    modalDisplay.appendChild(taskContainer);
+    row.appendChild(name);
+    row.appendChild(editListName);
+    taskList.appendChild(row);
+    currentTaskDisplay.appendChild(taskContainer);
+    completedTaskDisplay.appendChild(completedTaskContainer);
+    
+    let addTaskDoneBtn = document.querySelector("#done-adding-task");
+    addTaskDoneBtn.before(taskContainer);
 
-    document.getElementById(taskContainer.id).style.display = "none";
+    let completeTaskDoneBtn = document.querySelector("#done-undoing-task");
+    completeTaskDoneBtn.before(completedTaskContainer)
+
+    taskContainer.style.display = "none";
+    completedTaskContainer.style.display = "none";
 
     await loadTasks(newList._id);
     await loadCompletedTasks(newList._id);
@@ -142,25 +201,37 @@ async function addNewListNode(newList){
 
 //create a new element for a new task
 async function addNewTaskNode(newTask){
-    let inputBar = document.querySelector("#add-task-label");
-    // console.log(newTask.taskList);
+    // let inputBar = document.querySelector("#add-task-label");
+    // console.log(newTask, Object.keys(newTask));
     let taskContainer = document.getElementById(newTask.taskList);
-    let task = document.createElement('li');
+    let row = document.createElement('div');
+    let task = document.createElement('div');
+    task.style.display = "inline-block"
     let taskText = document.createTextNode(newTask.content);
+    let editTaskText= document.createElement('div');
+    editTaskText.style.display = 'inline-block';
+    editTaskText.id = `${newTask._id}-edit`
+    editTaskText.className = "edit-task-button"
+    let editBtnText = document.createTextNode("Edit");
+    editTaskText.appendChild(editBtnText);
     task.id = newTask._id;
     task.className = 'task-item';
     task.appendChild(taskText)
-    taskContainer.appendChild(task);
-    inputBar.before(taskContainer);
+    row.appendChild(task);
+    row.appendChild(editTaskText);
+    taskContainer.appendChild(row);
+    // inputBar.before(taskContainer);
     
 }
 
 async function addCompletedTasks(newCompletedTask){
-    let completedTaskContainer = document.querySelector('#completed');
-    let completedTask = document.createElement('li');
+    // console.log(`${newCompletedTask.taskList}-completed`)
+    let completedTaskContainer = document.getElementById(`${newCompletedTask.taskList}-completed`);
+    let completedTask = document.createElement('div');
     let completedTaskText = document.createTextNode(newCompletedTask.content);
     completedTask.id = newCompletedTask._id;
     completedTask.className = 'completed-task-item';
+    // completedTask.style.display = "block";
     completedTask.appendChild(completedTaskText)
     completedTaskContainer.appendChild(completedTask);
 }
@@ -183,17 +254,20 @@ async function generateCompletedTasks(completedTasks){
 //open the modal window for adding new tasks
 async function expandList(evt){
     let currId = evt.target.id
-    document.querySelector("#list-title").textContent = currId.slice(25);
-    let containerId = currId.slice(0, 24);
-    document.querySelector('#task-list-id').value = containerId;
+    document.getElementsByClassName("list-title")[0].textContent = currId.slice(25);
+    document.getElementsByClassName("list-title")[1].textContent = `${currId.slice(25)} - completed tasks`;
+    await setListId(evt);
+    let containerId = document.querySelector("#task-list-id").value;
+    
     document.getElementById(containerId).style.display = "block";
+    document.getElementById(`${containerId}-completed`).style.display = "block";
     toggleModalTask(evt);
     
 }
 
-async function taskComplete(evt){
-    // console.log(evt.target.parentNode)
-    let taskContainer = evt.target.parentNode
+async function undoTask(evt){
+    let completedTaskContainer = evt.target.parentNode
+    // console.log(completedTaskContainer)
     const config = {
         method: "POST",
         headers: {
@@ -201,56 +275,104 @@ async function taskComplete(evt){
         },
         body: JSON.stringify({
             'taskId': evt.target.id,
-            'taskListId': taskContainer.id
+            'taskListId': completedTaskContainer.id.slice(0, 24)
         })
     }
-    let response = await fetch('/api/complete_task', config);
+    let response = await fetch('/api/undo_task', config);
     let jsonData = await response.json();
-    let data;
-    taskContainer.removeChild(evt.target);
-    updateCompletedTasks(evt);
-    // console.log("completed")
-
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject();
+        }
+        else{
+            resolve(jsonData.result)
+        }
+    })
+    evt.target.remove();
+    data
+        .then(addNewTaskNode)
+        .catch(console.log)
 }
-
-async function updateCompletedTasks(evt){
-    let completedTasks = document.querySelector('#completed');
-    evt.target.className = "completed-task-item";
-    completedTasks.appendChild(evt.target);
-}
-
 
 //open/close the modal window
 async function toggleModalTask(evt){
-
     let currListId = document.querySelector('#task-list-id').value
-    // console.log(currListId);
-    if(evt.target.id === "done-adding-task"){
-        document.querySelector('#task-list-id').value = ""
+    if(evt.target.className === "close"){
+        // console.log(`${currListId}-completed`+" in list");
         document.getElementById(currListId).style.display = "none";
+        document.getElementById(`${currListId}-completed`).style.display = "none";
+        document.querySelector('#task-list-id').value = ""
+        if(evt.target.parentNode.id === "completed-task-display"){
+            switchWindow(evt);
+        }
     }
     document.getElementById("modal-task").classList.toggle("open");
 }
 
+async function toggleEditWindow(evt){
+    // console.log(document.querySelector('#task-list-id').value+" in edit")
+    document.getElementById("modal-edit").classList.toggle("open");
+}
+
+async function setListId(evt){
+    document.querySelector('#task-list-id').value = evt.target.id.slice(0,24);
+    // return document.querySelector('#task-list-id').value;
+}
+
+async function switchWindow(evt){
+    let currWindow = evt.target.parentNode;
+    let otherWindowId = ""
+    currWindow.style.display = "none";
+    if(currWindow.id === "current-task-display"){
+        otherWindowId = "completed-task-display"
+    }
+    else{
+        otherWindowId = "current-task-display"
+    }
+    // console.log(otherWindowId)
+    let otherWindow = document.getElementById(otherWindowId)
+    otherWindow.style.display = "block"
+}
+
 //event handler calls
 function main(){
-    console.log('test')
+    // console.log('test')
     const addTaskBtn = document.querySelector("#create-new-list");
     addTaskBtn.addEventListener("click", addNewList);
 
     document.addEventListener("click", function(evt) {
         let currEvt = evt.target;
         if(currEvt.className === "list-item"){
+            setListId(evt);
             expandList(evt);
+        }
+        else if(currEvt.className === "switch"){
+            switchWindow(evt);
         }
         else if(currEvt.id === "add-task"){
             addNewTask(evt);
         }
-        else if(currEvt.id === "done-adding-task"){
+        else if(currEvt.className === "close"){
             toggleModalTask(evt);
         }
         else if(currEvt.className === "task-item"){
+            // console.log(evt, evt.target)
             taskComplete(evt);
+        }
+        else if(currEvt.className === "completed-task-item"){
+            undoTask(evt);
+        }
+        else if(currEvt.className === "edit-list-button"){
+            document.querySelector("#edit-item").textContent = "Change List Name"
+            setListId(evt);
+            toggleEditWindow(evt);
+        }
+        else if(currEvt.className === "edit-task-button"){
+            document.querySelector("#edit-item").textContent = "Change Task"
+            toggleEditWindow(evt);
+        }
+        else if(currEvt.id === "confirm-edit"){
+            toggleEditWindow(evt);
         }
     })
 
