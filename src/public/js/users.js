@@ -75,7 +75,7 @@ async function taskComplete(evt){
         },
         body: JSON.stringify({
             'taskId': evt.target.id,
-            'taskListId': taskContainer.id
+            'taskListId': taskContainer.id.slice(0, 24)
         })
     }
     let response = await fetch('/api/complete_task', config);
@@ -97,6 +97,99 @@ async function taskComplete(evt){
     
     // console.log("completed")
 
+}
+
+async function undoTask(evt){
+    let completedTaskContainer = evt.target.parentNode
+    // console.log(completedTaskContainer)
+    const config = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'taskId': evt.target.id,
+            'taskListId': completedTaskContainer.id.slice(0, 24)
+        })
+    }
+    let response = await fetch('/api/undo_task', config);
+    let jsonData = await response.json();
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject();
+        }
+        else{
+            resolve(jsonData.result)
+        }
+    })
+    evt.target.remove();
+    data
+        .then(addNewTaskNode)
+        .catch(console.log)
+}
+
+async function editListName(listId){
+    // console.log("list")
+    let newName = document.querySelector("#edit-text").value.trim();
+    if(!newName){
+        alert("enter a new name");
+        return;
+    }
+    // console.log(newName)
+    const config = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `taskListId=${listId}&newName=${newName}`
+    }
+    let response = await fetch('/api/edit_list_name', config);
+    let jsonData = await response.json();
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject();
+        }
+        else{
+            resolve(jsonData.result)
+        }
+    })
+    console.log(jsonData);
+    document.querySelector("#edit-text").value = ""
+    data
+        .then(updateListName)
+        .catch(console.log);
+}
+
+async function editTask(listId, taskId){
+    // console.log("list")
+    let newTask = document.querySelector("#edit-text").value.trim();
+    if(!newTask){
+        alert("enter a new name");
+        return;
+    }
+    // console.log(newName)
+    const config = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `taskId=${taskId}&taskListId=${listId}&newTask=${newTask}`
+    }
+    let response = await fetch('/api/edit_task', config);
+    let jsonData = await response.json();
+    let data = new Promise((resolve, reject) => {
+        if(jsonData.err){
+            reject();
+        }
+        else{
+            resolve(jsonData.result)
+        }
+    })
+    console.log(jsonData);
+    document.querySelector("#edit-text").value = ""
+    data
+        .then(updateTask)
+        .catch(console.log);
 }
 
 //load content on page
@@ -152,6 +245,17 @@ async function loadCompletedTasks(id){
 
 }
 
+
+async function editContent(itemType, listId, taskId){
+    // console.log(document.querySelector('#edit-item-id').value, " is a ", document.querySelector('#item-type').value);
+    if(itemType === "list"){
+        editListName(listId);
+    }
+    else if(itemType === "task"){
+        editTask(listId, taskId);
+    }
+}
+
 //create a new element for a new list item
 async function addNewListNode(newList){
     // console.log(newList);
@@ -160,28 +264,28 @@ async function addNewListNode(newList){
     let completedTaskDisplay = document.querySelector('#completed-task-display');
     // console.log(completedTaskDisplay)
     let taskContainer = document.createElement('div');
-    taskContainer.id = newList._id;
+    taskContainer.id = `${newList._id}-container`;
     taskContainer.className = "container"
     
     let row = document.createElement('div');
     let name = document.createElement('div');
     name.style.display = 'inline-block';
-    let editListName = document.createElement('div');
-    editListName.style.display = 'inline-block';
-    editListName.id = `${newList._id}-edit`
-    editListName.className = "edit-list-button"
+    let editListBtn = document.createElement('div');
+    editListBtn.style.display = 'inline-block';
+    editListBtn.id = `${newList._id}-edit`
+    editListBtn.className = "edit-list-button"
     let editBtnText = document.createTextNode("Edit");
-    editListName.appendChild(editBtnText);
+    editListBtn.appendChild(editBtnText);
     let completedTaskContainer = document.createElement('div');
     completedTaskContainer.id = `${newList._id}-completed`
     completedTaskContainer.className = "container"
     // console.log(completedTaskContainer)
-    name.id = `${newList._id}-${newList.listName}`;
+    name.id = `${newList._id}`;
     name.className = 'list-item';
     let nameText = document.createTextNode(newList.listName);
     name.appendChild(nameText);
     row.appendChild(name);
-    row.appendChild(editListName);
+    row.appendChild(editListBtn);
     taskList.appendChild(row);
     currentTaskDisplay.appendChild(taskContainer);
     completedTaskDisplay.appendChild(completedTaskContainer);
@@ -203,7 +307,7 @@ async function addNewListNode(newList){
 async function addNewTaskNode(newTask){
     // let inputBar = document.querySelector("#add-task-label");
     // console.log(newTask, Object.keys(newTask));
-    let taskContainer = document.getElementById(newTask.taskList);
+    let taskContainer = document.getElementById(`${newTask.taskList}-container`);
     let row = document.createElement('div');
     let task = document.createElement('div');
     task.style.display = "inline-block"
@@ -236,6 +340,14 @@ async function addCompletedTasks(newCompletedTask){
     completedTaskContainer.appendChild(completedTask);
 }
 
+async function updateListName(list){
+    document.getElementById(list._id).textContent = list.listName;
+}
+
+async function updateTask(task){
+    document.getElementById(task._id).textContent = task.content;
+}
+
 //wrapper to create and display all lists referenced by a user
 async function generateLists(lists){
     // let taskList = document.querySelector("#task-list");
@@ -254,44 +366,15 @@ async function generateCompletedTasks(completedTasks){
 //open the modal window for adding new tasks
 async function expandList(evt){
     let currId = evt.target.id
-    document.getElementsByClassName("list-title")[0].textContent = currId.slice(25);
-    document.getElementsByClassName("list-title")[1].textContent = `${currId.slice(25)} - completed tasks`;
+    document.getElementsByClassName("list-title")[0].textContent = evt.target.textContent;
+    document.getElementsByClassName("list-title")[1].textContent = `${evt.target.textContent} - completed tasks`;
     await setListId(evt);
     let containerId = document.querySelector("#task-list-id").value;
     
-    document.getElementById(containerId).style.display = "block";
+    document.getElementById(`${containerId}-container`).style.display = "block";
     document.getElementById(`${containerId}-completed`).style.display = "block";
     toggleModalTask(evt);
     
-}
-
-async function undoTask(evt){
-    let completedTaskContainer = evt.target.parentNode
-    // console.log(completedTaskContainer)
-    const config = {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            'taskId': evt.target.id,
-            'taskListId': completedTaskContainer.id.slice(0, 24)
-        })
-    }
-    let response = await fetch('/api/undo_task', config);
-    let jsonData = await response.json();
-    let data = new Promise((resolve, reject) => {
-        if(jsonData.err){
-            reject();
-        }
-        else{
-            resolve(jsonData.result)
-        }
-    })
-    evt.target.remove();
-    data
-        .then(addNewTaskNode)
-        .catch(console.log)
 }
 
 //open/close the modal window
@@ -299,7 +382,7 @@ async function toggleModalTask(evt){
     let currListId = document.querySelector('#task-list-id').value
     if(evt.target.className === "close"){
         // console.log(`${currListId}-completed`+" in list");
-        document.getElementById(currListId).style.display = "none";
+        document.getElementById(`${currListId}-container`).style.display = "none";
         document.getElementById(`${currListId}-completed`).style.display = "none";
         document.querySelector('#task-list-id').value = ""
         if(evt.target.parentNode.id === "completed-task-display"){
@@ -317,6 +400,11 @@ async function toggleEditWindow(evt){
 async function setListId(evt){
     document.querySelector('#task-list-id').value = evt.target.id.slice(0,24);
     // return document.querySelector('#task-list-id').value;
+}
+
+async function setEditId(evt, itemType){
+    document.querySelector('#edit-item-id').value = evt.target.id.slice(0,24);
+    document.querySelector('#item-type').value = itemType;
 }
 
 async function switchWindow(evt){
@@ -365,14 +453,20 @@ function main(){
         else if(currEvt.className === "edit-list-button"){
             document.querySelector("#edit-item").textContent = "Change List Name"
             setListId(evt);
+            setEditId(evt, "list");
             toggleEditWindow(evt);
         }
         else if(currEvt.className === "edit-task-button"){
             document.querySelector("#edit-item").textContent = "Change Task"
+            setEditId(evt, 'task');
             toggleEditWindow(evt);
         }
         else if(currEvt.id === "confirm-edit"){
+            let itemType = document.querySelector('#item-type').value
+            let listId = document.querySelector('#task-list-id').value
+            let taskId = document.querySelector('#edit-item-id').value
             toggleEditWindow(evt);
+            editContent(itemType, listId, taskId);
         }
     })
 

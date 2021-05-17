@@ -192,6 +192,24 @@ app.post('/api/undo_task', (req, res) => {
     })
 })
 
+app.post('/api/edit_list_name', (req, res) => {
+    // console.log(req.body.taskListId);
+    TaskList.findOne({'_id': req.body.taskListId}, (err, result) => {
+        result.listName = req.body.newName;
+        result.save();
+        res.json({err, result});
+    })
+})
+
+app.post('/api/edit_task', (req, res) => {
+    // console.log(req.body.taskListId);
+    Task.findOne({'_id': req.body.taskId}, (err, result) => {
+        result.content = req.body.newTask;
+        result.save();
+        res.json({err, result});
+    })
+})
+
 app.get('/', (req, res) => {
     // console.log(req.isAuthenticated());
     res.render('index', {user: req.user});
