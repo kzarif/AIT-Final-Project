@@ -153,12 +153,13 @@ app.post('/api/complete_task', (req, res) => {
             else
                 return task !== req.body.taskId;
         })
-
+        let checkComplete = result.currentTasks.length === 0;
         result.save();
+
         // console.log(result);
         Task.findOne({'_id': req.body.taskId}, (err, result) => {
 
-            res.json({err, result});
+            res.json({err, result, 'checkComplete': checkComplete});
         })
 
     })

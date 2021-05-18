@@ -80,7 +80,7 @@ async function taskComplete(evt){
     }
     let response = await fetch('/api/complete_task', config);
     let jsonData = await response.json();
-    // console.log(jsonData)
+    console.log(jsonData)
     let data = new Promise((resolve, reject) => {
         if(jsonData.err){
             reject()
@@ -93,6 +93,7 @@ async function taskComplete(evt){
     evt.target.parentNode.remove();
     data
         .then(addCompletedTasks)
+        .then(checkCompletion(null,jsonData.checkComplete, jsonData.result.taskList))
         .catch(console.log)
     
     // console.log("completed")
@@ -125,6 +126,7 @@ async function undoTask(evt){
     evt.target.remove();
     data
         .then(addNewTaskNode)
+        .then(checkCompletion(null, false, jsonData.result.taskList))
         .catch(console.log)
 }
 
@@ -207,6 +209,7 @@ async function loadContent(){
     })
     data
     .then(generateLists)
+    .then(changeTag)
     .catch(console.log)
     
 }
@@ -258,33 +261,41 @@ async function editContent(itemType, listId, taskId){
 
 //create a new element for a new list item
 async function addNewListNode(newList){
-    // console.log(newList);
+    // select needed elements 
     let taskList = document.querySelector("#task-list");
     let currentTaskDisplay = document.querySelector("#current-task-display");
     let completedTaskDisplay = document.querySelector('#completed-task-display');
-    // console.log(completedTaskDisplay)
+
+    // div that will hold the tasks created along side the list
     let taskContainer = document.createElement('div');
     taskContainer.id = `${newList._id}-container`;
     taskContainer.className = "container"
     
+    // row will hold the list name, complete tag and edit button
     let row = document.createElement('div');
     let name = document.createElement('div');
     name.style.display = 'inline-block';
+    name.id = `${newList._id}`;
+    name.className = 'list-item';
+    let nameText = document.createTextNode(newList.listName);
+    let completeTag = document.createElement('span');
+    completeTag.textContent = "incomplete";
+    completeTag.id = `${newList._id}-tag`
+    completeTag.className = "complete-tag"
     let editListBtn = document.createElement('div');
     editListBtn.style.display = 'inline-block';
     editListBtn.id = `${newList._id}-edit`
     editListBtn.className = "edit-list-button"
     let editBtnText = document.createTextNode("Edit");
     editListBtn.appendChild(editBtnText);
+
+    //div that will contain the completed taks for this list
     let completedTaskContainer = document.createElement('div');
     completedTaskContainer.id = `${newList._id}-completed`
     completedTaskContainer.className = "container"
-    // console.log(completedTaskContainer)
-    name.id = `${newList._id}`;
-    name.className = 'list-item';
-    let nameText = document.createTextNode(newList.listName);
     name.appendChild(nameText);
     row.appendChild(name);
+    row.appendChild(completeTag);
     row.appendChild(editListBtn);
     taskList.appendChild(row);
     currentTaskDisplay.appendChild(taskContainer);
@@ -328,7 +339,14 @@ async function addNewTaskNode(newTask){
     
 }
 
-async function addCompletedTasks(newCompletedTask){
+async function addCompletedTasks(newCompletedTask, checkComplete){
+    // console.log(params[0], params[1])
+    // let newCompletedTask = params[0];
+    // let checkComplete = params[1];
+    // if(checkComplete){
+
+    // }
+    // console.log(newCompletedTask)
     // console.log(`${newCompletedTask.taskList}-completed`)
     let completedTaskContainer = document.getElementById(`${newCompletedTask.taskList}-completed`);
     let completedTask = document.createElement('div');
@@ -351,12 +369,13 @@ async function updateTask(task){
 //wrapper to create and display all lists referenced by a user
 async function generateLists(lists){
     // let taskList = document.querySelector("#task-list");
-    lists.map(addNewListNode);
+    lists.map(await addNewListNode);
+    return lists;
 }
 
 //wrapper to create all tasks referenced by a taskList
 async function generateTasks(tasks){
-    tasks.map(addNewTaskNode);
+    tasks.map(await addNewTaskNode);
 }
 
 async function generateCompletedTasks(completedTasks){
@@ -420,6 +439,32 @@ async function switchWindow(evt){
     // console.log(otherWindowId)
     let otherWindow = document.getElementById(otherWindowId)
     otherWindow.style.display = "block"
+}
+
+async function changeTag(lists){
+    lists.map(await checkCompletion)
+}
+
+async function checkCompletion(list, check, listId){
+    // console.log(list.currentTasks.length)
+    if(!list && check){
+        let tag = document.getElementById(`${listId}-tag`);
+        tag.textContent = "complete"
+        tag.classList.toggle("complete")
+    }
+    else if(check === false){
+        let tag = document.getElementById(`${listId}-tag`);
+        if(tag.textContent === "complete"){
+            tag.classList.toggle("complete");
+        }
+        tag.textContent = "incomplete"
+    }
+    else if(list.currentTasks.length === 0){
+        let tag = document.getElementById(`${list._id}-tag`);
+        // console.log("test");
+        tag.textContent = "complete"
+        tag.classList.toggle("complete")
+    }
 }
 
 //event handler calls
