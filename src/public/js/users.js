@@ -452,6 +452,10 @@ async function checkCompletion(list, check, listId){
         tag.textContent = "complete"
         tag.classList.toggle("complete")
     }
+    else if(list.currentTasks.length === 0 && list.completedTasks.length === 0){
+        let tag = document.getElementById(`${listId}-tag`);
+        tag.textContent = "incomplete"
+    }
     else if(check === false){
         let tag = document.getElementById(`${listId}-tag`);
         if(tag.textContent === "complete"){
