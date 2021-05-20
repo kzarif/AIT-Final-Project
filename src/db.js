@@ -2,6 +2,18 @@ const mongoose = require('mongoose');
 const URLSlugs = require('mongoose-url-slugs');
 const passportLocalMongoose = require('passport-local-mongoose');
 
+let dbconf;
+let USERNAME;
+let PASSWORD
+if(process.env.NODE_ENV === "development"){
+    dbconf = 'mongodb://localhost/noteApp'
+}
+else if(process.env.NODE_ENV === "production"){
+    USERNAME = process.env.USERNAME;
+    PASSWORD = process.env.PASSWORD;    
+    dbconf = `mongodb://${USERNAME}:${PASSWORD}@class-mongodb.cims.nyu.edu/USERNAME`
+}
+
 // add your schemas
 const UserSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -31,4 +43,4 @@ UserSchema.plugin(passportLocalMongoose);
 mongoose.model('User', UserSchema);
 mongoose.model('TaskList', TaskListSchema);
 mongoose.model('Task', TaskSchema);
-mongoose.connect('mongodb://localhost/noteApp',  { useNewUrlParser: true });
+mongoose.connect(dbconf,  { useNewUrlParser: true });

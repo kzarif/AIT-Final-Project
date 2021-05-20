@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", main);
 
 //add a new list to user account
 async function addNewList(evt){
-    console.log('clicked')
+    // console.log('clicked')
     let listName = document.querySelector('#list-name').value.trim();
     if(!listName){
         alert("please enter a name for your new list");
@@ -460,7 +460,7 @@ async function checkCompletion(list, check, listId){
         tag.textContent = "incomplete"
     }
     else if(list.currentTasks.length === 0 && list.completedTasks.length === 0){
-        let tag = document.getElementById(`${listId}-tag`);
+        let tag = document.getElementById(`${list._id}-tag`);
         tag.textContent = "incomplete"
     }
     else if(list.currentTasks.length === 0){

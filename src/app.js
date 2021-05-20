@@ -1,4 +1,5 @@
 const express = require('express');
+
 const mongoose = require('mongoose');
 require('./db');
 const User = mongoose.model('User');
@@ -12,6 +13,13 @@ const { count } = require('console');
 
 const app = express();
 
+if(process.env.NODE_ENV === "development")
+require("dotenv").config({path: `../.env.${process.env.NODE_ENV}`});
+else if(process.env.NODE_ENV === "production"){
+    require("dotenv").config({path: `../.env`});
+}
+
+const port = process.env.PORT;
 
 
 app.set('view engine', 'hbs');
@@ -36,8 +44,6 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
-
-const port = 10579;
 
 app.get('/api/get_task_lists', (req, res) => {
     User
@@ -121,7 +127,7 @@ app.post('/api/add_new_task', (req, res) => {
             'content': req.body.task,
         })
         
-        console.log(newTask);
+        // console.log(newTask);
 
         list.currentTasks.push(newTask);
         list.save();
