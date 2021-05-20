@@ -1,10 +1,5 @@
 const express = require('express');
 
-const mongoose = require('mongoose');
-require('./db');
-const User = mongoose.model('User');
-const TaskList = mongoose.model('TaskList');
-const Task = mongoose.model('Task');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const passport = require('passport');
@@ -17,10 +12,16 @@ if(process.env.NODE_ENV === "development")
 require("dotenv").config({path: `../.env.${process.env.NODE_ENV}`});
 else if(process.env.NODE_ENV === "production"){
     require("dotenv").config({path: `../.env`});
+    console.log(process.env.USERNAME, process.env.PASSWORD)
 }
 
 const port = process.env.PORT;
 
+const mongoose = require('mongoose');
+require('./db');
+const User = mongoose.model('User');
+const TaskList = mongoose.model('TaskList');
+const Task = mongoose.model('Task');
 
 app.set('view engine', 'hbs');
 
