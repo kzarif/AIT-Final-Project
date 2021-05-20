@@ -9,7 +9,7 @@ const { count } = require('console');
 const app = express();
 
 if(process.env.NODE_ENV === "development")
-require("dotenv").config({path: `../.env.${process.env.NODE_ENV}`});
+    require("dotenv").config({path: `../.env.${process.env.NODE_ENV}`});
 else if(process.env.NODE_ENV === "production"){
     require("dotenv").config({path: `../.env`});
 }

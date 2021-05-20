@@ -11,7 +11,8 @@ if(process.env.NODE_ENV === "development"){
 else if(process.env.NODE_ENV === "production"){
     USERNAME = process.env.USERNAME;
     PASSWORD = process.env.PASSWORD;    
-    dbconf = `mongodb://${USERNAME}:${PASSWORD}@class-mongodb.cims.nyu.edu/USERNAME`
+    dbconf = `mongodb://${USERNAME}:${PASSWORD}@class-mongodb.cims.nyu.edu/${USERNAME}`
+    // console.log(dbconf)
 }
 
 // add your schemas
