@@ -37,7 +37,7 @@ passport.deserializeUser(User.deserializeUser());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 
-const port = 3000;
+const port = 10579;
 
 app.get('/api/get_task_lists', (req, res) => {
     User
