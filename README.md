@@ -20,4 +20,6 @@ As a User I can create to-do lists, so that I can easily manage my tasks
 
 ## Modules
 
-I will be using passport to handle user authorization and registration, along with the passport-local-mongoose plug-in for mongoose for saving and updating the database.
+I will be using passport to handle user authorization and registration, along with the passport-local-mongoose plug-in for mongoose for saving and updating the database. 
+
+Using dotenv for loading environment variables
