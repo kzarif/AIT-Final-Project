@@ -8,17 +8,17 @@
 <body>
 	<header class="navBar">
 		
-		<a id="home" href="/">Home</a>
 		{{#if user}}
-			<span>Welcome<a id="add" href="/{{user.username}}">{{user.username}}</a></span>
+			<span>Welcome <a id="add" href="/{{user.username}}">{{user.username}}</a></span>
 		{{else}}
 			<nav class="logButtons">
 				<a id="register" href="/register">Register</a>|<a id="login" href="/login">Login</a>
 			</nav>
 		{{/if}}
+		<a id="home" href="/">Home</a>
 		
 	</header>
-	<h1>note.</h1>
+	<h1>TaskList</h1>
 	{{{body}}}
 </body>
 </html>
