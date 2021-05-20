@@ -12,7 +12,6 @@ if(process.env.NODE_ENV === "development")
 require("dotenv").config({path: `../.env.${process.env.NODE_ENV}`});
 else if(process.env.NODE_ENV === "production"){
     require("dotenv").config({path: `../.env`});
-    console.log(process.env.USERNAME, process.env.PASSWORD)
 }
 
 const port = process.env.PORT;
